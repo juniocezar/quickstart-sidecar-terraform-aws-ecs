@@ -7,37 +7,43 @@ locals {
 }
 
 variable "control_plane" {
-  description = "The address of the Cyral control plane. E.g.: '<tenant>.cyral.com'"
-  type = string
+  description = "The address of the Cyral Control Plane. E.g.: '<tenant>.app.cyral.com'"
+  type        = string
 }
 
 variable "sidecar_id" {
-  description = "The sidecar identifier."
-  type = string
+  description = "The sidecar identifier provided by the Control Plane."
+  type        = string
 }
 
 variable "sidecar_version" {
   description = "The version of the sidecar."
-  type = string
+  type        = string
 }
 
-variable "repositories_supported" {
-  description = "List of all repository types that will be supported by the sidecar (lower case only)."
-  type = list(string)
-  default = [
-    "denodo", "dremio", "dynamodb", "mongodb", "mysql", 
-    "oracle", "postgresql", "redshift", "rest", "snowflake",
-    "sqlserver", "s3"
-  ]
+variable "client_id" {
+  description = "Sidecar Client ID provided by the Control Plane"
+  type        = string
+}
+
+variable "client_secret" {
+  description = "Sidecar Client Secret provided by the Control Plane"
+  type        = string
+  sensitive   = true
 }
 
 variable "sidecar_ports" {
   description = "List of ports allowed to connect to the sidecar."
-  type = list(number)
+  type        = list(number)
 }
 
 variable "sidecar_dns_name" {
   description = "The fully qualified sidecar domain name. If there's no DNS for the sidecar, use the load balancer DNS instead."
-  type = string
+  type        = string
 }
 
+variable "db_inbound_cidr" {
+  description = "CIDR allowed to access the database port"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
