@@ -5,13 +5,6 @@ data "aws_ecs_cluster" "existent_cluster" {
   cluster_name = var.ecs_cluster_name
 }
 
-# Use all subnets within the VPC
-data "aws_subnets" "all_subnets" {
-  filter {
-    name   = "vpc-id"
-    values = [var.sidecar_vpc_id]
-  }
-}
 # If the cluster_name is empty, it will create a new ECS
 # cluster and use it to deploy the sidecar.
 resource "aws_ecs_cluster" "sidecar_cluster" {
@@ -66,7 +59,7 @@ resource "aws_lb" "sidecar_nlb" {
   name                       = "sidecar-nlb"
   load_balancer_type         = "network"
   internal                   =  var.load_balancer_scheme == "internet-facing" ? false : true
-  subnets                    = data.aws_subnets.all_subnets.ids
+  subnets                    = var.subnet_ids
   enable_deletion_protection = false
   tags = {
     Name = "${local.sidecar.name_prefix}-sidecar-container-sg"
@@ -91,7 +84,7 @@ resource "aws_lb_target_group" "sidecar_tg" {
   name        = "sidecar-tg-${each.key}"
   port        = each.value
   protocol    = "TCP"
-  vpc_id      = var.sidecar_vpc_id
+  vpc_id      = var.vpc_id
   target_type = "ip"
   health_check {
     port     = 9000
@@ -125,7 +118,7 @@ resource "aws_ecs_service" "sidecar_service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = data.aws_subnets.all_subnets.ids
+    subnets          = var.subnet_ids
     security_groups  = [aws_security_group.sidecar_sg.id]
     assign_public_ip = true
   }
