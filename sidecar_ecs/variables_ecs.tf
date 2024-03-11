@@ -24,7 +24,7 @@ variable "ecs_cluster_name" {
 variable "ecs_cpu" {
   description = "The CPU units used by the ECS service and task."
   type        = number
-  default     = 2048
+  default     = 1024
 }
 
 variable "ecs_memory" {
