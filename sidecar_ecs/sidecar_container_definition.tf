@@ -3,13 +3,13 @@ locals {
   container_definition = [
     {
       # The sidecar container name
-      name      = local.ecs.container_name
+      name = local.ecs.container_name
       # The image for a specific sidecar version, thats
       # stored in the container registry.
-      image     = "${var.container_registry}/cyral-sidecar:${var.sidecar_version}"
-      cpu       = var.ecs_cpu
-      memory    = var.ecs_memory
-      essential = true
+      image        = "${var.container_registry}/cyral-sidecar:${var.sidecar_version}"
+      cpu          = var.ecs_cpu
+      memory       = var.ecs_memory
+      essential    = true
       portMappings = local.ecs.container_ports_mappings
       ulimits = [
         {
@@ -44,9 +44,21 @@ locals {
           "name"  = "CYRAL_SIDECAR_VERSION"
           "value" = var.sidecar_version
         },
-        { 
+        {
           "name"  = "CYRAL_SIDECAR_ENDPOINT"
           "value" = local.sidecar_endpoint
+        },
+        {
+          "name" = "CYRAL_SIDECAR_DEPLOYMENT_PROPERTIES"
+          "value" = "'${jsonencode({
+            "account-id"      = data.aws_caller_identity.current.account_id
+            "region"          = data.aws_region.current.name
+            "deployment-type" = "quickstart-terraform-aws-ecs"
+          })}'"
+        },
+        {
+          "name"  = "CYRAL_SIDECAR_CLOUD_PROVIDER"
+          "value" = "aws"
         },
       ]
       # Define the log configuration, where sidecar will ship
@@ -54,8 +66,8 @@ locals {
       # AWS documentation for ECS Log Configuration:
       # https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_LogConfiguration.html
       logConfiguration = {
-        logDriver     = "awslogs",
-        options       = {
+        logDriver = "awslogs",
+        options = {
           "awslogs-create-group"  = "true",
           "awslogs-group"         = "/ecs/${local.ecs.container_name}/",
           "awslogs-region"        = data.aws_region.current.name,
@@ -65,3 +77,4 @@ locals {
     },
   ]
 }
+
