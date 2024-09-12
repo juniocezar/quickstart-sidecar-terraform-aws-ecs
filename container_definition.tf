@@ -1,5 +1,5 @@
 locals {
-  sidecar_endpoint = var.sidecar_dns_name != "" ? var.sidecar_dns_name : aws_lb.sidecar_nlb.dns_name
+  sidecar_endpoint = var.sidecar_dns_name != "" || length(aws_lb.sidecar_nlb) == 0 ? var.sidecar_dns_name : aws_lb.sidecar_nlb[0].dns_name
   container_definition = [
     {
       # The sidecar container name

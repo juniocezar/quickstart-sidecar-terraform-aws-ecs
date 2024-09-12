@@ -60,6 +60,8 @@ resource "aws_security_group" "sidecar_sg" {
 
 # Setup load balancer for the sidecar task.
 resource "aws_lb" "sidecar_nlb" {
+  count = var.deploy_load_balancer ? 1 : 0
+
   name                             = "${local.sidecar.name_prefix}-sidecar-nlb"
   load_balancer_type               = "network"
   internal                         = var.load_balancer_scheme == "internet-facing" ? false : true
@@ -69,8 +71,8 @@ resource "aws_lb" "sidecar_nlb" {
 }
 
 resource "aws_lb_listener" "sidecar_listener" {
-  for_each          = { for port in var.sidecar_ports : tostring(port) => port }
-  load_balancer_arn = aws_lb.sidecar_nlb.arn
+  for_each          = var.deploy_load_balancer ? { for port in var.sidecar_ports : tostring(port) => port } : {}
+  load_balancer_arn = aws_lb.sidecar_nlb[0].arn
   port              = each.value
   protocol          = "TCP"
 
@@ -81,7 +83,7 @@ resource "aws_lb_listener" "sidecar_listener" {
 }
 
 resource "aws_lb_target_group" "sidecar_tg" {
-  for_each = { for port in var.sidecar_ports : tostring(port) => port }
+  for_each = var.deploy_load_balancer ? { for port in var.sidecar_ports : tostring(port) => port } : {}
 
   name        = "sidecar-tg-${each.key}"
   port        = each.value
@@ -101,8 +103,8 @@ resource "aws_lb_target_group" "sidecar_tg" {
 # the container definitions.
 resource "aws_ecs_task_definition" "sidecar_task_definition" {
   family                   = "${local.sidecar.name_prefix}-sidecar-task"
-  execution_role_arn       = aws_iam_role.ecs_role.arn
-  task_role_arn            = aws_iam_role.ecs_task_role.arn
+  execution_role_arn       = var.precreated_ecs_role_arn != null ? var.precreated_ecs_role_arn : aws_iam_role.ecs_role[0].arn
+  task_role_arn            = var.precreated_ecs_task_role_arn != null ? var.precreated_ecs_task_role_arn : aws_iam_role.ecs_task_role[0].arn
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = var.ecs_cpu
@@ -132,7 +134,7 @@ resource "aws_ecs_service" "sidecar_service" {
   # will be mapped to the respective sidecar container
   # port.
   dynamic "load_balancer" {
-    for_each = { for port in local.ecs.service_ports[count.index] : tostring(port) => port }
+    for_each = var.deploy_load_balancer ? { for port in local.ecs.service_ports[count.index] : tostring(port) => port } : {}
     content {
       target_group_arn = aws_lb_target_group.sidecar_tg[load_balancer.key].arn
       container_name   = local.ecs.container_name

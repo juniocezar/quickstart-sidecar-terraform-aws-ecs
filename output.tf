@@ -4,12 +4,12 @@ output "ecs_cluster_arn" {
 }
 
 output "load_balancer_arn" {
-  value       = aws_lb.sidecar_nlb.arn
+  value       = var.deploy_load_balancer ? aws_lb.sidecar_nlb[0].arn : null
   description = "Load balancer ARN"
 }
 
 output "load_balancer_dns" {
-  value       = aws_lb.sidecar_nlb.dns_name
+  value       = var.deploy_load_balancer ? aws_lb.sidecar_nlb[0].dns_name : null
   description = "Sidecar load balancer DNS endpoint"
 }
 
