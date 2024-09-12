@@ -15,6 +15,19 @@ locals {
   }
 }
 
+# Variables to optionally provide pre-created IAM role ARNs
+variable "precreated_ecs_role_arn" {
+  type        = string
+  description = "ARN of the pre-created ECS role"
+  default     = null
+}
+
+variable "precreated_ecs_task_role_arn" {
+  type        = string
+  description = "ARN of the pre-created ECS task role"
+  default     = null
+}
+
 variable "container_registry" {
   description = "The container registry where the sidecar image is stored."
   default     = "public.ecr.aws/cyral"

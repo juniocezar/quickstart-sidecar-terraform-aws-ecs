@@ -42,3 +42,9 @@ variable "vpc_id" {
   description = "The VPC ID of the sidecar subnets."
   type        = string
 }
+
+variable "deploy_load_balancer" {
+  description = "Deploy or not the load balancer and target groups. This option makes the ASG have only one replica, irrelevant of the Asg Min Max and Desired"
+  type        = bool
+  default     = true
+}
